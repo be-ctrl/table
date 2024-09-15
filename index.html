@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جدول الدروس الأسبوعي المتقدم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        .progress-bar {
+            transition: width 1s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-6 text-indigo-800">
+            جدول الدروس الأسبوعي للفصل الخريفي 2024/2025
+        </h1>
+        <h2 class="text-xl font-semibold text-center mb-4 text-indigo-600">
+            قسم علوم التربة والموارد المائية
+        </h2>
+        <div id="schedule" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <!-- الجدول سيتم إنشاؤه ديناميكيًا باستخدام JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const scheduleData = [
+            {
+                day: 'الأحد',
+                classes: [
+                    { time: '08:30 - 10:30', subject: 'أدارة مشاريع هندسية زراعية' },
+                    { time: '10:30 - 12:30', subject: 'فسلجة نبات / نظري' },
+                    { time: '12:30 - 13:30', subject: 'اللغة انكليزية تخصصية3' },
+                ]
+            },
+            {
+                day: 'الاثنين',
+                classes: [
+                    { time: '08:30 - 10:30', subject: 'تقانات انتاج حيواني/نظري' },
+                    { time: '10:30 - 12:30', subject: 'هندسة مكائن والات زراعية / نظري' },
+                    { time: '12:30 - 14:30', subject: 'هندسة مكائن والات زراعية/ عملي' },
+                ]
+            },
+            {
+                day: 'الثلاثاء',
+                classes: [
+                    { time: '08:30 - 10:30', subject: 'تطبيقات حاسوب/ عملي' },
+                    { time: '10:30 - 11:30', subject: 'فعاليات يوم العلم', highlight: true },
+                    { time: '11:30 - 14:30', subject: 'علوم تربة/ عملي' },
+                ]
+            },
+            {
+                day: 'الأربعاء',
+                classes: [
+                    { time: '08:30 - 11:30', subject: 'فسلجة نبات/عملي' },
+                    { time: '11:30 - 14:30', subject: 'تقانات انتاج حيواني/عملي' },
+                ]
+            },
+            {
+                day: 'الخميس',
+                classes: [
+                    { time: '08:30 - 10:30', subject: 'علوم التربة/ نظري' },
+                    { time: '10:30 - 11:30', subject: 'نشاط رياضي' },
+                    { time: '11:30 - 14:30', subject: 'نشاط فني' },
+                ]
+            },
+        ];
+
+        function createSchedule() {
+            const scheduleContainer = document.getElementById('schedule');
+            scheduleData.forEach(dayData => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'bg-white rounded-lg shadow-lg overflow-hidden';
+                dayElement.innerHTML = `
+                    <div class="bg-indigo-600 text-white text-center py-2 font-bold text-lg">
+                        ${dayData.day}
+                    </div>
+                    <ul class="divide-y divide-gray-200">
+                        ${dayData.classes.map(cls => `
+                            <li class="p-3 ${cls.highlight ? 'bg-yellow-100' : ''}">
+                                <p class="text-sm font-semibold text-gray-600">${cls.time}</p>
+                                <p class="text-base ${cls.highlight ? 'text-indigo-700 font-bold' : 'text-gray-800'}">${cls.subject}</p>
+                                <div class="mt-2">
+                                    <div class="bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                                        <div class="bg-blue-600 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <p class="text-sm mt-1 status"></p>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+                scheduleContainer.appendChild(dayElement);
+            });
+        }
+
+        function updateClassStatus() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentTime = now.getHours() * 60 + now.getMinutes();
+
+            scheduleData.forEach((dayData, dayIndex) => {
+                dayData.classes.forEach((cls, classIndex) => {
+                    const [startTime, endTime] = cls.time.split(' - ').map(time => {
+                        const [hours, minutes] = time.split(':').map(Number);
+                        return hours * 60 + minutes;
+                    });
+
+                    const status = document.querySelectorAll('.status')[dayIndex * dayData.classes.length + classIndex];
+                    const progressBar = document.querySelectorAll('.progress-bar')[dayIndex * dayData.classes.length + classIndex];
+
+                    if (currentDay === dayIndex + 1) { // +1 because getDay() returns 0 for Sunday
+                        if (currentTime < startTime) {
+                            const remainingTime = startTime - currentTime;
+                            status.textContent = `متبقي للبدء: ${Math.floor(remainingTime / 60)} ساعة و ${remainingTime % 60} دقيقة`;
+                            status.className = 'text-sm mt-1 status text-blue-600';
+                            progressBar.style.width = '0%';
+                        } else if (currentTime >= startTime && currentTime < endTime) {
+                            const elapsedTime = currentTime - startTime;
+                            const totalDuration = endTime - startTime;
+                            const progress = (elapsedTime / totalDuration) * 100;
+                            status.textContent = 'المحاضرة فعالة الآن';
+                            status.className = 'text-sm mt-1 status text-green-600 font-bold';
+                            progressBar.style.width = `${progress}%`;
+                            progressBar.className = 'bg-green-600 h-2 rounded-full progress-bar';
+                        } else {
+                            status.textContent = 'انتهت المحاضرة';
+                            status.className = 'text-sm mt-1 status text-red-600';
+                            progressBar.style.width = '100%';
+                            progressBar.className = 'bg-red-600 h-2 rounded-full progress-bar';
+                        }
+                    } else {
+                        status.textContent = 'لم تبدأ بعد';
+                        status.className = 'text-sm mt-1 status text-gray-600';
+                        progressBar.style.width = '0%';
+                    }
+                });
+            });
+        }
+
+        createSchedule();
+        updateClassStatus();
+        setInterval(updateClassStatus, 60000); // تحديث كل دقيقة
+    </script>
+</body>
+</html>
